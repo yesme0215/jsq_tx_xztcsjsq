@@ -1,0 +1,31 @@
+<svg width="400" height="220" viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+  <!-- 外层圆角矩形（双线外框） -->
+  <rect x="10" y="10" width="380" height="200" rx="20" ry="20" 
+        fill="white" stroke="black" stroke-width="2"/>
+  
+  <!-- 内层圆角矩形（双线内框） -->
+  <rect x="14" y="14" width="372" height="192" rx="18" ry="18" 
+        fill="white" stroke="black" stroke-width="1"/>
+  
+  <!-- 底部灰色区域 -->
+  <!-- 底部灰色区域：上方两角为直角，下方两角保持圆角 -->
+  <path d="M 15,125 
+           H 385 
+           V 184
+           A 18,18 0 0 1 367,202
+           H 33
+           A 18,18 0 0 1 15,184
+           Z" 
+        fill="#e0e0e0" stroke="none"/>
+
+ <!-- 底部灰色区域 - 废弃 -->
+  <!-- rect x="15" y="125" width="370" height="77" rx="18" ry="18" fill="#e0e0e0" stroke="none"/ -->
+  
+  <!-- 文字“四有坊”（黑体，居中） -->
+  <text x="200" y="100" font-family="SimHei, Arial, sans-serif" font-size="75" 
+        text-anchor="middle" font-weight="bold">四有坊</text>
+  
+  <!-- 文字“syou.fun”（手写体风格，居中） -->
+  <text x="200" y="180" font-family="Comic Sans MS, cursive" font-size="60" 
+        text-anchor="middle">syou.fun</text>
+</svg>

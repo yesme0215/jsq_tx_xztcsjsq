@@ -1,0 +1,13 @@
+# 文本文件强制使用 LF 换行符
+* text=auto eol=lf
+
+# 二进制文件（图片、音频、视频等）不做任何换行符处理
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.mp4 binary
+*.zip binary
+*.rar binary

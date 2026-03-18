@@ -1,0 +1,31 @@
+<svg width="300" height="350" viewBox="0 0 300 350" xmlns="http://www.w3.org/2000/svg">
+  <!-- 上底（小椭圆，模拟圆柱上底） -->
+  <ellipse cx="150" cy="80" rx="100" ry="15" 
+           fill="white" stroke="black" stroke-width="2"/>
+  
+  <!-- 下底（大椭圆，模拟圆柱下底） -->
+  <ellipse cx="150" cy="280" rx="100" ry="20" 
+           fill="white" stroke="black" stroke-width="2"/>
+  
+  <!-- 左侧壁：连接上底左端点(50,80)和下底左端点(50,280) -->
+  <line x1="50" y1="80" x2="50" y2="280" 
+        stroke="black" stroke-width="2"/>
+  
+  <!-- 右侧壁：连接上底右端点(250,80)和下底右端点(250,280) -->
+  <line x1="250" y1="80" x2="250" y2="280" 
+        stroke="black" stroke-width="2"/>
+  
+  <!-- 高度（H）的虚线：从下底圆心(150,280)到上底圆心(150,80) -->
+  <line x1="150" y1="280" x2="150" y2="80" 
+        stroke="gray" stroke-dasharray="5,5" stroke-width="1"/>
+  
+  <!-- 底面直径（D）的虚线：贯穿下底，x从50到250，y=280 -->
+  <line x1="50" y1="280" x2="250" y2="280" 
+        stroke="gray" stroke-dasharray="5,5" stroke-width="1"/>
+  
+  <!-- 文字标注：H（高度旁） -->
+  <text x="170" y="180" font-family="Arial" font-size="24" fill="red">H</text>
+  
+  <!-- 文字标注：D（下底直径旁） -->
+  <text x="150" y="300" font-family="Arial" font-size="24" fill="red">D</text>
+</svg>

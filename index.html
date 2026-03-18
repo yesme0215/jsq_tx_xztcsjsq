@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>旋转体参数计算器（圆台/圆锥/圆柱） Rotator Parameter Calculator (Frustum/Cone/Cylinder)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+        body {
+            width: 100%;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            background-color: #f5f5f5;
+            -webkit-overflow-scrolling: touch;
+            overflow-scrolling: touch;
+            display: flex;
+            flex-direction: column;
+        }
+        .calculator {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            flex: 1;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: clamp(18px, 5vw, 24px);
+            font-weight: 600;
+        }
+        .shape-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .shape-btn {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: clamp(14px, 3vw, 16px);
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .shape-btn.active {
+            background: #2196F3;
+            color: white;
+        }
+        .shape-btn:hover {
+            background: #d0d0d0;
+        }
+        .shape-btn.active:hover {
+            background: #1976D2;
+        }
+        .query-panel {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f0f8f0;
+            border-radius: 8px;
+        }
+        .query-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .query-btn {
+            padding: 8px 16px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .query-btn:hover {
+            background: #1976D2;
+        }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            display: none;
+        }
+        .history-table th, .history-table td {
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-size: clamp(12px, 3vw, 14px);
+        }
+        .history-table th {
+            background: #4CAF50;
+            color: white;
+        }
+        .history-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .export-btn {
+            background: #ff9800 !important;
+        }
+        .export-btn:hover {
+            background: #f57c00 !important;
+        }
+        .clear-btn {
+            background: #f44336 !important;
+        }
+        .clear-btn:hover {
+            background: #d32f2f !important;
+        }
+        .top-layout {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .input-area {
+            flex: 1;
+            min-width: 280px;
+        }
+        .result-area-wrap {
+            flex: 1;
+            min-width: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .bottom-layout {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .formula-area {
+            flex: 1;
+            min-width: 280px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        .formula-area h3 {
+            color: #2196F3;
+            margin-bottom: 10px;
+            font-size: clamp(16px, 3vw, 18px);
+            text-align: center;
+        }
+        .formula-item {
+            margin-bottom: 8px;
+            font-size: clamp(14px, 3vw, 16px);
+            line-height: 1.6;
+        }
+        .formula-item strong {
+            color: #d32f2f;
+        }
+        /* 调整图片区域样式 - 增加左右留白，确保图片居中 */
+        .canvas-area {
+            flex: 1;
+            min-width: 280px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 40px; /* 增加左右内边距实现留白 */
+            min-height: 330px;
+        }
+        /* 调整形状图片样式 - 限制最大宽度，保持比例 */
+        #shapeImage {
+            max-width: 100%;
+            max-height: 300px; /* 限制最大高度，避免图片过大 */
+            height: auto;
+            width: auto; /* 取消最小宽度限制，让图片自适应 */
+            object-fit: contain;
+            display: block;
+            margin: 0 auto; /* 确保绝对居中 */
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .dimension-group, .derived-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .dimension-item, .derived-item {
+            flex: 1;
+            min-width: 120px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .diameter2-item {
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+        .diameter2-item.disabled {
+            opacity: 0.6;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #555;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+        input {
+            width: 100%;
+            padding: 12px 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: clamp(14px, 3vw, 16px);
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        input:disabled {
+            background: #f0f0f0;
+            cursor: not-allowed;
+        }
+        input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 6px rgba(76, 175, 80, 0.3);
+        }
+        .calc-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: clamp(16px, 4vw, 18px);
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: background-color 0.3s, transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .calc-btn:hover {
+            background-color: #45a049;
+        }
+        .calc-btn:active {
+            transform: scale(0.98);
+        }
+        .result-area {
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            width: 100%;
+            height: 100%;
+        }
+        .result-item {
+            margin-bottom: 8px;
+            font-size: clamp(14px, 3vw, 16px);
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .result-label {
+            font-weight: 600;
+            color: #2196F3;
+            min-width: 80px;
+        }
+        .result-value {
+            flex: 1;
+            text-align: right;
+            margin-left: 8px;
+            word-break: break-all;
+        }
+        .missing-tip {
+            color: #f44336;
+            font-size: 12px;
+            font-weight: normal;
+            margin-left: 8px;
+            flex: 100%;
+            margin-top: 2px;
+        }
+        .shape-tip {
+            color: #4CAF50;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 10px;
+            display: block;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+        .tip-text {
+            color: #ff5722;
+            font-weight: 600;
+            text-align: center;
+            margin: 8px 0;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+        /* 调整页脚样式 - 确保声明在左，logo在右，控制logo大小 */
+        .footer {
+            max-width: 1200px;
+            margin: 20px auto 0;
+            width: 100%;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between; /* 左右分布 */
+            align-items: center; /* 垂直居中 */
+            flex-wrap: nowrap; /* 禁止换行 */
+            gap: 20px;
+        }
+        .copyright {
+            font-size: clamp(12px, 3vw, 14px);
+            color: #666;
+            line-height: 1.8;
+            flex: 1; /* 占据剩余空间 */
+            text-align: left; /* 左对齐 */
+        }
+        /* 调整logo容器样式 */
+        .logo-placeholder {
+            width: 80px; /* 缩小logo容器宽度 */
+            height: 50px; /* 缩小logo容器高度 */
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #999;
+            font-size: 12px;
+            text-align: center;
+            flex-shrink: 0; /* 禁止logo容器收缩 */
+        }
+        /* logo图片样式 */
+        #logo {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        @media (max-width: 767px) {
+            body {
+                padding: 5px;
+                background-color: #fff;
+            }
+            .calculator {
+                box-shadow: none;
+                padding: 15px 10px;
+                border-radius: 0;
+                max-width: 100%;
+            }
+            .top-layout, .bottom-layout {
+                gap: 15px;
+            }
+            .dimension-group, .derived-group {
+                gap: 8px;
+            }
+            .result-area {
+                padding: 12px;
+            }
+            .query-btn-group {
+                flex-direction: column;
+            }
+            .query-btn {
+                width: 100%;
+            }
+            .shape-selector {
+                flex-direction: column;
+            }
+            .shape-btn {
+                width: 100%;
+            }
+            /* 移动端图片区域调整 */
+            .canvas-area {
+                padding: 15px 20px;
+                min-height: 280px;
+            }
+            #shapeImage {
+                max-height: 250px; /* 移动端缩小图片最大高度 */
+            }
+            /* 移动端页脚样式调整 */
+            .footer {
+                padding: 15px;
+                border-radius: 0;
+                box-shadow: none;
+                flex-wrap: wrap; /* 移动端允许换行 */
+                justify-content: center; /* 移动端居中 */
+                text-align: center;
+            }
+            .copyright {
+                text-align: center;
+                order: 2; /* 版权信息在下方 */
+                flex: 100%; /* 占满整行 */
+            }
+            .logo-placeholder {
+                order: 1; /* logo在上方 */
+                margin: 0 auto 10px; /* 居中并增加底部间距 */
+            }
+        }
+        @media (orientation: landscape) and (max-width: 767px) {
+            .top-layout, .bottom-layout {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+            .input-area, .result-area-wrap {
+                min-width: 250px;
+            }
+            .formula-area, .canvas-area {
+                min-width: 200px;
+            }
+            .canvas-area {
+                flex: 1;
+            }
+            /* 横屏移动端页脚调整 */
+            .footer {
+                flex-wrap: nowrap;
+            }
+            .copyright {
+                text-align: left;
+                flex: 1;
+                order: 1;
+            }
+            .logo-placeholder {
+                order: 2;
+                margin: 0;
+            }
+        }
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .calculator {
+                max-width: 95%;
+                padding: 18px;
+            }
+            .top-layout {
+                gap: 15px;
+            }
+            .bottom-layout {
+                gap: 15px;
+            }
+            .footer {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>旋转体参数计算器（圆台/圆锥/圆柱） <br />Rotator Parameter Calculator (Frustum/Cone/Cylinder)</h1>
+        <div class="shape-selector">
+            <button class="shape-btn active" data-shape="frustum">圆台 Frustum</button>
+            <button class="shape-btn" data-shape="cylinder">圆柱体 Cylinder</button>
+            <button class="shape-btn" data-shape="cone">圆锥体 Cone</button>
+        </div>
+        <div class="query-panel">
+            <h3 style="margin-bottom: 10px; color: #4CAF50; text-align: center;">历史计算记录 Calculation History</h3>
+            <div class="query-btn-group">
+                <button class="query-btn" id="showHistoryBtn">查看历史记录 View History</button>
+                <button class="query-btn export-btn" id="exportCsvBtn">导出CSV文件 Export CSV</button>
+                <button class="query-btn clear-btn" id="clearHistoryBtn">清空历史记录 Clear History</button>
+            </div>
+            <table class="history-table" id="historyTable">
+                <thead>
+                    <tr>
+                        <th>序号 No.</th>
+                        <th>计算时间 Time</th>
+                        <th>下底直径(cm) Bottom Diameter</th>
+                        <th>上底直径(cm) Top Diameter</th>
+                        <th>高度(cm) Height</th>
+                        <th>侧面积(cm²) Lateral Area</th>
+                        <th>表面积(cm²) Surface Area</th>
+                        <th>体积(cm³) Volume</th>
+                        <th>密度(g/cm³) Density</th>
+                        <th>重量(g) Weight</th>
+                        <th>形状 Shape</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody"></tbody>
+            </table>
+        </div>
+        <div class="top-layout">
+            <div class="input-area" id="inputResultArea">
+                <div class="dimension-group">
+                    <div class="dimension-item">
+                        <label for="diameter1">下底直径 D (cm)：Bottom Diameter D (cm)：</label>
+                        <input type="number" id="diameter1" min="0.01" step="0.01" placeholder="输入下底直径 Enter bottom diameter">
+                    </div>
+                    <div class="dimension-item diameter2-item">
+                        <label for="diameter2">上底直径 d (cm)：Top Diameter d (cm)：</label>
+                        <input type="number" id="diameter2" min="0" step="0.01" placeholder="输入上底直径（圆锥=0，圆柱=D）Enter top diameter (Cone=0, Cylinder=D)">
+                    </div>
+                    <div class="dimension-item">
+                        <label for="height">高度 H (cm)：Height H (cm)：</label>
+                        <input type="number" id="height" min="0.01" step="0.01" placeholder="输入高度 Enter height">
+                    </div>
+                </div>
+                <div class="derived-group">
+                    <div class="derived-item">
+                        <label for="lateralArea">侧面积 (cm²)：Lateral Area (cm²)：</label>
+                        <input type="number" id="lateralArea" min="0.01" step="0.01" placeholder="输入侧面积 Enter lateral area">
+                    </div>
+                    <div class="derived-item">
+                        <label for="surfaceArea">表面积 (cm²)：Surface Area (cm²)：</label>
+                        <input type="number" id="surfaceArea" min="0.01" step="0.01" placeholder="输入表面积 Enter surface area">
+                    </div>
+                    <div class="derived-item">
+                        <label for="volumeInput">体积 (cm³)：Volume (cm³)：</label>
+                        <input type="number" id="volumeInput" min="0.01" step="0.01" placeholder="输入体积 Enter volume">
+                    </div>
+                </div>
+                <div class="dimension-group">
+                    <div class="dimension-item">
+                        <label for="density">密度 (g/cm³)：Density (g/cm³)：</label>
+                        <input type="number" id="density" min="0.001" step="0.001" placeholder="输入物质密度 Enter density">
+                    </div>
+                    <div class="dimension-item">
+                        <label for="weight">重量 (g)：Weight (g)：</label>
+                        <input type="number" id="weight" min="0.01" step="0.01" placeholder="输入物体重量 Enter weight">
+                    </div>
+                </div>
+                <button class="calc-btn" id="calc-btn">开始计算 Start Calculation</button>
+                <div class="tip-text" id="tip-text">请选择图形类型并输入参数后点击计算 Please select shape type and enter parameters before calculation</div>
+            </div>
+            <div class="result-area-wrap">
+                <div class="result-area">
+                    <div class="shape-tip" id="shape-tip">当前计算：圆台 Current Calculation: Frustum</div>
+                    <div class="result-item">
+                        <span class="result-label">下底直径 (D)：Bottom Diameter (D)：</span>
+                        <span class="result-value" id="result-diameter1">--</span>
+                        <span class="missing-tip" id="tip-diameter1"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">上底直径 (d)：Top Diameter (d)：</span>
+                        <span class="result-value" id="result-diameter2">--</span>
+                        <span class="missing-tip" id="tip-diameter2"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">高度 (H)：Height (H)：</span>
+                        <span class="result-value" id="result-height">--</span>
+                        <span class="missing-tip" id="tip-height"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">侧面积：Lateral Area：</span>
+                        <span class="result-value" id="result-lateralArea">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">表面积：Surface Area：</span>
+                        <span class="result-value" id="result-surfaceArea">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">体积：Volume：</span>
+                        <span class="result-value" id="result-volume">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">密度：Density：</span>
+                        <span class="result-value" id="result-density">--</span>
+                        <span class="missing-tip" id="tip-density"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">重量：Weight：</span>
+                        <span class="result-value" id="result-weight">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bottom-layout">
+            <div class="formula-area">
+                <h3>计算公式 Calculation Formula</h3>
+                <div class="formula-item"><strong>圆台 Frustum：</strong></div>
+                <div class="formula-item">侧面积 = π×(D+d)/2×√[H²+((D-d)/2)²]</div>
+                <div class="formula-item">表面积 = 侧面积 + π×(D²+d²)/4</div>
+                <div class="formula-item">体积 = π×H×(D²+Dd+d²)/12</div>
+                <div class="formula-item"><strong>圆柱 Cylinder：</strong></div>
+                <div class="formula-item">侧面积 = π×D×H</div>
+                <div class="formula-item">表面积 = π×D×H + π×D²/2</div>
+                <div class="formula-item">体积 = π×D²×H/4</div>
+                <div class="formula-item"><strong>圆锥 Cone：</strong></div>
+                <div class="formula-item">侧面积 = π×D/2×√(H²+(D/2)²)</div>
+                <div class="formula-item">表面积 = 侧面积 + π×D²/4</div>
+                <div class="formula-item">体积 = π×D²×H/12</div>
+                <div class="formula-item"><strong>通用公式：</strong>重量 = 体积 × 密度</div>
+            </div>
+            <div class="canvas-area">
+                <img id="shapeImage" src="frustum.svg" alt="圆台示意图" title="圆台示意图">
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <div class="copyright">
+            站点声明：本工具仅用于学习和参考，计算结果仅供参考，请勿用于专业工程计算。<br>
+            Site Statement: This tool is for learning and reference only, the calculation results are for reference only, please do not use for professional engineering calculations.<br>
+            ©2026 四有坊 版权所有   <br /> ©2026 syou.fun All rights reserved.
+        </div>
+        <div class="logo-placeholder">
+            <img id="logo" src="logo.svg" alt="站点logo" title="站点logo">
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentShape = 'frustum';
+        let calculationHistory = [];
+        
+        // DOM元素
+        const shapeBtns = document.querySelectorAll('.shape-btn');
+        const diameter1Input = document.getElementById('diameter1');
+        const diameter2Input = document.getElementById('diameter2');
+        const heightInput = document.getElementById('height');
+        const lateralAreaInput = document.getElementById('lateralArea');
+        const surfaceAreaInput = document.getElementById('surfaceArea');
+        const volumeInput = document.getElementById('volumeInput');
+        const densityInput = document.getElementById('density');
+        const weightInput = document.getElementById('weight');
+        const calcBtn = document.getElementById('calc-btn');
+        const shapeImage = document.getElementById('shapeImage');
+        const shapeTip = document.getElementById('shape-tip');
+        const tipText = document.getElementById('tip-text');
+        const diameter2Item = document.querySelector('.diameter2-item');
+        const showHistoryBtn = document.getElementById('showHistoryBtn');
+        const exportCsvBtn = document.getElementById('exportCsvBtn');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        const historyTable = document.getElementById('historyTable');
+        const historyTableBody = document.getElementById('historyTableBody');
+        
+        // 结果元素
+        const resultDiameter1 = document.getElementById('result-diameter1');
+        const resultDiameter2 = document.getElementById('result-diameter2');
+        const resultHeight = document.getElementById('result-height');
+        const resultLateralArea = document.getElementById('result-lateralArea');
+        const resultSurfaceArea = document.getElementById('result-surfaceArea');
+        const resultVolume = document.getElementById('result-volume');
+        const resultDensity = document.getElementById('result-density');
+        const resultWeight = document.getElementById('result-weight');
+        
+        // 提示元素
+        const tipDiameter1 = document.getElementById('tip-diameter1');
+        const tipDiameter2 = document.getElementById('tip-diameter2');
+        const tipHeight = document.getElementById('tip-height');
+        const tipDensity = document.getElementById('tip-density');
+        
+        // 初始化
+        function init() {
+            // 形状选择事件
+            shapeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    shapeBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentShape = this.dataset.shape;
+                    updateShapeUI();
+                });
+            });
+            
+            // 计算按钮事件
+            calcBtn.addEventListener('click', calculate);
+            
+            // 历史记录相关事件
+            showHistoryBtn.addEventListener('click', toggleHistoryTable);
+            exportCsvBtn.addEventListener('click', exportToCsv);
+            clearHistoryBtn.addEventListener('click', clearHistory);
+            
+            // 初始化形状UI
+            updateShapeUI();
+            
+            // 从本地存储加载历史记录
+            loadHistoryFromLocalStorage();
+        }
+        
+        // 更新形状相关UI
+        function updateShapeUI() {
+            // 更新图片
+            	// 替换原来的 shapeImage.src = `${currentShape}.png`;
+		// 自定义图片路径和名称
+		if (currentShape === 'frustum') {
+    		shapeImage.src = 'frustum.svg'; // 圆台图片路径
+		} else if (currentShape === 'cylinder') {
+    		shapeImage.src = 'cylinder.svg'; // 圆柱图片路径
+		} else if (currentShape === 'cone') {
+    		shapeImage.src = 'cone.svg'; // 圆锥图片路径
+		}
+            shapeImage.alt = `${getShapeName()}示意图`;
+            shapeImage.title = `${getShapeName()}示意图`;
+            
+            // 更新提示文本
+            shapeTip.textContent = `当前计算：${getShapeName()} Current Calculation: ${getShapeEnglishName()}`;
+            
+            // 处理直径2输入框
+            if (currentShape === 'cylinder') {
+                diameter2Item.classList.remove('disabled');
+                diameter2Input.removeAttribute('disabled');
+                diameter2Input.placeholder = '输入上底直径（圆柱=D）Enter top diameter (Cylinder=D)';
+                tipDiameter2.textContent = '';
+            } else if (currentShape === 'cone') {
+                diameter2Item.classList.add('disabled');
+                diameter2Input.value = '0';
+                diameter2Input.setAttribute('disabled', true);
+                diameter2Input.placeholder = '圆锥上底直径固定为0 Cone top diameter is fixed at 0';
+                tipDiameter2.textContent = '圆锥上底直径固定为0';
+            } else { // frustum
+                diameter2Item.classList.remove('disabled');
+                diameter2Input.removeAttribute('disabled');
+                diameter2Input.placeholder = '输入上底直径 Enter top diameter';
+                tipDiameter2.textContent = '';
+            }
+            
+            // 清空结果
+            clearResults();
+        }
+        
+        // 获取形状名称（中文）
+        function getShapeName() {
+            switch(currentShape) {
+                case 'frustum': return '圆台';
+                case 'cylinder': return '圆柱体';
+                case 'cone': return '圆锥体';
+                default: return '圆台';
+            }
+        }
+        
+        // 获取形状名称（英文）
+        function getShapeEnglishName() {
+            switch(currentShape) {
+                case 'frustum': return 'Frustum';
+                case 'cylinder': return 'Cylinder';
+                case 'cone': return 'Cone';
+                default: return 'Frustum';
+            }
+        }
+        
+        // 清空结果
+        function clearResults() {
+            resultDiameter1.textContent = '--';
+            resultDiameter2.textContent = '--';
+            resultHeight.textContent = '--';
+            resultLateralArea.textContent = '--';
+            resultSurfaceArea.textContent = '--';
+            resultVolume.textContent = '--';
+            resultDensity.textContent = '--';
+            resultWeight.textContent = '--';
+            
+            // 清空提示
+            tipDiameter1.textContent = '';
+            tipDiameter2.textContent = currentShape === 'cone' ? '圆锥上底直径固定为0' : '';
+            tipHeight.textContent = '';
+            tipDensity.textContent = '';
+            
+            tipText.textContent = '请选择图形类型并输入参数后点击计算 Please select shape type and enter parameters before calculation';
+        }
+        
+        // 计算核心逻辑
+        function calculate() {
+            try {
+                // 获取输入值
+                const diameter1 = parseFloat(diameter1Input.value) || 0;
+                let diameter2 = parseFloat(diameter2Input.value) || 0;
+                const height = parseFloat(heightInput.value) || 0;
+                const density = parseFloat(densityInput.value) || 0;
+                
+                // 验证输入
+                let hasError = false;
+                
+                if (diameter1 <= 0) {
+                    tipDiameter1.textContent = '请输入有效的下底直径（>0）';
+                    hasError = true;
+                } else {
+                    tipDiameter1.textContent = '';
+                }
+                
+                if (currentShape !== 'cone' && diameter2 < 0) {
+                    tipDiameter2.textContent = '请输入有效的上底直径（≥0）';
+                    hasError = true;
+                }
+                
+                if (height <= 0) {
+                    tipHeight.textContent = '请输入有效的高度（>0）';
+                    hasError = true;
+                } else {
+                    tipHeight.textContent = '';
+                }
+                
+                if (hasError) {
+                    tipText.textContent = '输入参数有误，请检查后重新计算 Input parameters are incorrect, please check and recalculate';
+                    return;
+                }
+                
+                // 根据形状调整参数
+                if (currentShape === 'cylinder') {
+                    // 圆柱：上底直径等于下底直径
+                    diameter2 = diameter1;
+                    diameter2Input.value = diameter1;
+                } else if (currentShape === 'cone') {
+                    // 圆锥：上底直径固定为0
+                    diameter2 = 0;
+                }
+                
+                // 计算
+                let lateralArea = 0;
+                let surfaceArea = 0;
+                let volume = 0;
+                
+                switch(currentShape) {
+                    case 'frustum': // 圆台
+                        const slantHeight = Math.sqrt(Math.pow(height, 2) + Math.pow((diameter1 - diameter2) / 2, 2));
+                        lateralArea = Math.PI * (diameter1 + diameter2) / 2 * slantHeight;
+                        surfaceArea = lateralArea + Math.PI * (Math.pow(diameter1, 2) + Math.pow(diameter2, 2)) / 4;
+                        volume = Math.PI * height * (Math.pow(diameter1, 2) + diameter1 * diameter2 + Math.pow(diameter2, 2)) / 12;
+                        break;
+                        
+                    case 'cylinder': // 圆柱
+                        lateralArea = Math.PI * diameter1 * height;
+                        surfaceArea = lateralArea + Math.PI * Math.pow(diameter1, 2) / 2;
+                        volume = Math.PI * Math.pow(diameter1, 2) * height / 4;
+                        break;
+                        
+                    case 'cone': // 圆锥
+                        const coneSlantHeight = Math.sqrt(Math.pow(height, 2) + Math.pow(diameter1 / 2, 2));
+                        lateralArea = Math.PI * diameter1 / 2 * coneSlantHeight;
+                        surfaceArea = lateralArea + Math.PI * Math.pow(diameter1, 2) / 4;
+                        volume = Math.PI * Math.pow(diameter1, 2) * height / 12;
+                        break;
+                }
+                
+                // 计算重量
+                let weight = 0;
+                if (density > 0) {
+                    weight = volume * density;
+                    tipDensity.textContent = '';
+                } else {
+                    tipDensity.textContent = '未输入密度，无法计算重量';
+                }
+                
+                // 更新结果（保留4位小数）
+                resultDiameter1.textContent = diameter1.toFixed(4);
+                resultDiameter2.textContent = diameter2.toFixed(4);
+                resultHeight.textContent = height.toFixed(4);
+                resultLateralArea.textContent = lateralArea.toFixed(4);
+                resultSurfaceArea.textContent = surfaceArea.toFixed(4);
+                resultVolume.textContent = volume.toFixed(4);
+                resultDensity.textContent = density > 0 ? density.toFixed(4) : '--';
+                resultWeight.textContent = density > 0 ? weight.toFixed(4) : '--';
+                
+                tipText.textContent = '计算完成 Calculation completed';
+                
+                // 保存到历史记录
+                saveToHistory({
+                    diameter1,
+                    diameter2,
+                    height,
+                    lateralArea,
+                    surfaceArea,
+                    volume,
+                    density,
+                    weight,
+                    shape: currentShape,
+                    shapeName: getShapeName(),
+                    timestamp: new Date().toLocaleString()
+                });
+                
+            } catch (error) {
+                console.error('计算出错：', error);
+                tipText.textContent = '计算出错，请检查输入参数 Calculation error, please check input parameters';
+            }
+        }
+        
+        // 保存到历史记录
+        function saveToHistory(record) {
+            calculationHistory.unshift(record); // 添加到开头
+            // 限制历史记录数量
+            if (calculationHistory.length > 100) {
+                calculationHistory = calculationHistory.slice(0, 100);
+            }
+            // 保存到本地存储
+            localStorage.setItem('calculationHistory', JSON.stringify(calculationHistory));
+            // 更新历史记录表格
+            updateHistoryTable();
+        }
+        
+        // 从本地存储加载历史记录
+        function loadHistoryFromLocalStorage() {
+            const savedHistory = localStorage.getItem('calculationHistory');
+            if (savedHistory) {
+                calculationHistory = JSON.parse(savedHistory);
+                updateHistoryTable();
+            }
+        }
+        
+        // 更新历史记录表格
+        function updateHistoryTable() {
+            historyTableBody.innerHTML = '';
+            
+            calculationHistory.forEach((record, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${record.timestamp}</td>
+                    <td>${record.diameter1.toFixed(4)}</td>
+                    <td>${record.diameter2.toFixed(4)}</td>
+                    <td>${record.height.toFixed(4)}</td>
+                    <td>${record.lateralArea.toFixed(4)}</td>
+                    <td>${record.surfaceArea.toFixed(4)}</td>
+                    <td>${record.volume.toFixed(4)}</td>
+                    <td>${record.density > 0 ? record.density.toFixed(4) : '--'}</td>
+                    <td>${record.density > 0 ? record.weight.toFixed(4) : '--'}</td>
+                    <td>${record.shapeName}</td>
+                `;
+                historyTableBody.appendChild(tr);
+            });
+        }
+        
+        // 切换历史记录表格显示/隐藏
+        function toggleHistoryTable() {
+            if (historyTable.style.display === 'none' || historyTable.style.display === '') {
+                historyTable.style.display = 'table';
+                showHistoryBtn.textContent = '隐藏历史记录 Hide History';
+                updateHistoryTable();
+            } else {
+                historyTable.style.display = 'none';
+                showHistoryBtn.textContent = '查看历史记录 View History';
+            }
+        }
+        
+        // 导出CSV
+        function exportToCsv() {
+            if (calculationHistory.length === 0) {
+                alert('没有历史记录可导出 No history records to export');
+                return;
+            }
+            
+            // 构建CSV内容
+            let csvContent = '序号,计算时间,下底直径(cm),上底直径(cm),高度(cm),侧面积(cm²),表面积(cm²),体积(cm³),密度(g/cm³),重量(g),形状\n';
+            
+            calculationHistory.forEach((record, index) => {
+                csvContent += `${index + 1},${record.timestamp},${record.diameter1.toFixed(4)},${record.diameter2.toFixed(4)},${record.height.toFixed(4)},${record.lateralArea.toFixed(4)},${record.surfaceArea.toFixed(4)},${record.volume.toFixed(4)},${record.density > 0 ? record.density.toFixed(4) : ''},${record.density > 0 ? record.weight.toFixed(4) : ''},${record.shapeName}\n`;
+            });
+            
+            // 创建下载链接
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `旋转体计算记录_${new Date().getTime()}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // 清空历史记录
+        function clearHistory() {
+            if (confirm('确定要清空所有历史记录吗？ Are you sure to clear all history records?')) {
+                calculationHistory = [];
+                localStorage.removeItem('calculationHistory');
+                updateHistoryTable();
+                tipText.textContent = '历史记录已清空 History records cleared';
+            }
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

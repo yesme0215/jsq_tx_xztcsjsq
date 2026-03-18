@@ -1,0 +1,38 @@
+<svg width="300" height="350" viewBox="0 0 300 350" xmlns="http://www.w3.org/2000/svg">
+  <!-- 上底（小椭圆）：圆心(150,80)，rx=60，ry=15 -->
+  <ellipse cx="150" cy="80" rx="60" ry="15" 
+           fill="white" stroke="black" stroke-width="2"/>
+  
+  <!-- 下底（大椭圆）：圆心(150,280)，rx=100，ry=20 -->
+  <ellipse cx="150" cy="280" rx="100" ry="20" 
+           fill="white" stroke="black" stroke-width="2"/>
+  
+  <!-- 左侧腰：连接上底左端点(90,80)和下底左端点(50,280) -->
+  <line x1="90" y1="80" x2="50" y2="280" 
+        stroke="black" stroke-width="2"/>
+  
+  <!-- 右侧腰：连接上底右端点(210,80)和下底右端点(250,280) -->
+  <line x1="210" y1="80" x2="250" y2="280" 
+        stroke="black" stroke-width="2"/>
+  
+  <!-- 高度（H）的虚线：从下底圆心(150,280)到上底圆心(150,80) -->
+  <line x1="150" y1="280" x2="150" y2="80" 
+        stroke="gray" stroke-dasharray="5,5" stroke-width="1"/>
+  
+  <!-- 下底直径（D）的虚线：从左到右端点(50,280)到(250,280) -->
+  <line x1="50" y1="280" x2="250" y2="280" 
+        stroke="gray" stroke-dasharray="5,5" stroke-width="1"/>
+  
+  <!-- 上底直径（d）的虚线：从左到右端点(90,80)到(210,80) -->
+  <line x1="90" y1="80" x2="210" y2="80" 
+        stroke="gray" stroke-dasharray="5,5" stroke-width="1"/>
+  
+  <!-- 文字标注：H（高度旁，y=180） -->
+  <text x="170" y="180" font-family="Arial" font-size="24" fill="red">H</text>
+  
+  <!-- 文字标注：D（下底直径旁，y=290） -->
+  <text x="150" y="300" font-family="Arial" font-size="24" fill="red">D</text>
+  
+  <!-- 文字标注：d（上底直径旁，y=90） -->
+  <text x="150" y="95" font-family="Arial" font-size="20" fill="red">d</text>
+</svg>
