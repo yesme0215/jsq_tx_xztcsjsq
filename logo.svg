@@ -21,9 +21,9 @@
  <!-- 底部灰色区域 - 废弃 -->
   <!-- rect x="15" y="125" width="370" height="77" rx="18" ry="18" fill="#e0e0e0" stroke="none"/ -->
   
-  <!-- 文字“四有坊”（黑体，居中） -->
+  <!-- 文字“是有方”（黑体，居中） -->
   <text x="200" y="100" font-family="SimHei, Arial, sans-serif" font-size="75" 
-        text-anchor="middle" font-weight="bold">四有坊</text>
+        text-anchor="middle" font-weight="bold">是有方</text>
   
   <!-- 文字“syou.fun”（手写体风格，居中） -->
   <text x="200" y="180" font-family="Comic Sans MS, cursive" font-size="60" 
